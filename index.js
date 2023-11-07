@@ -31,6 +31,7 @@ async function run() {
     const usersCollection = client.db('quellDB').collection('users');
     const blogsCollection = client.db('quellDB').collection('blogs');
     const wishCollection = client.db('quellDB').collection('wishlist');
+    const commentsCollection = client.db('quellDB').collection('comments');
     //user
     app.get('/users', async (req, res) => {
       const cursor = usersCollection.find();
@@ -54,6 +55,20 @@ async function run() {
       const newUser = req.body;
       console.log(newUser);
       const result = await blogsCollection.insertOne(newUser);
+      res.send(result);
+    })
+
+    // all blog data end
+    // all blog data start
+    app.get('/comments', async (req, res) => {
+      const cursor = commentsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+    app.post('/comments', async (req, res) => {
+      const newUser = req.body;
+      console.log(newUser);
+      const result = await commentsCollection.insertOne(newUser);
       res.send(result);
     })
 
