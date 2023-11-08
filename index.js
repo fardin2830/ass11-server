@@ -1,13 +1,18 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
 //middleware
-app.use(cors());
 app.use(express.json());
+const corsConfig = {
+  origin:'*',
+  Credential:true,
+  methods:["GET","POST","PUT","PATCH","DELETE","OPTIONS"]
+}
+app.use(cors(corsConfig))
 
 // 2nd step code copy from mongodb drivers
 // console.log(process.env.DB_PASS);
@@ -25,7 +30,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
 
     const usersCollection = client.db('quellDB').collection('users');
@@ -71,9 +76,44 @@ async function run() {
       const result = await commentsCollection.insertOne(newUser);
       res.send(result);
     })
+    // blog update
+    app.get('/blogs/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await blogsCollection.findOne(query);
+      res.send(result);
+    })
+    app.put('/blogs/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const updatedBlog = req.body;
 
+      const blogs = {
+        $set: {
+          // serialNumber, title, image, short, long, auther, authorImage, catagory, authorEmail
+          serialNumber: updatedBlog.serialNumber,
+          title: updatedBlog.title,
+          image: updatedBlog.image,
+          short: updatedBlog.short,
+          long: updatedBlog.long,
+          auther: updatedBlog.auther,
+          authorImage: updatedBlog.authorImage,
+          catagory: updatedBlog.catagory,
+          authorEmail: updatedBlog.authorEmail
+        }
+      }
+      const result = await blogsCollectionCollection.updatedBlog(filter, blogs, options);
+      res.send(result);
+    })
     // all blog data end
     // wish list start
+    app.delete('/wishlist/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await wishCollection.deleteOne(query);
+      res.send(result);
+    })
     app.get('/wishlist', async (req, res) => {
       let query = {};
       if (req.query?.email) {
